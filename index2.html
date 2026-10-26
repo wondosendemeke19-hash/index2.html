@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Qarshi Digital & Game Hub</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --accent: #22c55e;
+            --accent-hover: #16a34a;
+            --text-color: #f8fafc;
+            --text-secondary: #94a3b8;
+            --danger: #ef4444;
+            --primary: #3b82f6;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .auth-container, .card, header {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+            margin-bottom: 16px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            margin-bottom: 16px;
+        }
+
+        .balance-title {
+            font-size: 13px;
+            color: var(--text-secondary);
+            text-align: left;
+        }
+
+        .balance-amount {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--accent);
+            text-align: left;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 6px;
+        }
+
+        .btn-small {
+            background: var(--card-bg);
+            border: 1px solid var(--accent);
+            color: var(--text-color);
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 11px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-small:hover {
+            background: var(--accent);
+            color: #000;
+        }
+
+        .logout-btn {
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+
+        .logout-btn:hover {
+            background: var(--danger);
+            color: #fff;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            background: var(--card-bg);
+            border: 1px solid var(--text-secondary);
+            color: var(--text-secondary);
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .tab-btn.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #fff;
+        }
+
+        .product-item {
+            background: var(--bg-color);
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 10px;
+            text-align: left;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .wheel-container {
+            position: relative;
+            width: 240px;
+            height: 240px;
+            margin: 0 auto 20px auto;
+        }
+
+        .wheel {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 6px solid var(--accent);
+            position: relative;
+            transition: transform 4s cubic-bezier(0.15, 0.95, 0.15, 1);
+            background: conic-gradient(
+                #3b82f6 0deg 60deg,
+                #8b5cf6 60deg 120deg,
+                #ec4899 120deg 180deg,
+                #f59e0b 180deg 240deg,
+                #10b981 240deg 300deg,
+                #6366f1 300deg 360deg
+            );
+        }
+
+        .wheel-label {
+            position: absolute;
+            width: 50%;
+            height: 30px;
+            top: 50%;
+            left: 50%;
+            transform-origin: 0% 50%;
+            text-align: right;
+            padding-right: 15px;
+            font-size: 13px;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+            pointer-events: none;
+        }
+
+        .wheel-label:nth-child(1) { transform: rotate(30deg); }
+        .wheel-label:nth-child(2) { transform: rotate(90deg); }
+        .wheel-label:nth-child(3) { transform: rotate(150deg); }
+        .wheel-label:nth-child(4) { transform: rotate(210deg); }
+        .wheel-label:nth-child(5) { transform: rotate(270deg); }
+        .wheel-label:nth-child(6) { transform: rotate(330deg); }
+
+        .pointer {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-top: 20px solid #fff;
+            z-index: 10;
+        }
+
+        .action-btn {
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            width: 100%;
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            padding: 24px;
+            border-radius: 16px;
+            width: 85%;
+            max-width: 320px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .form-group {
+            margin-bottom: 14px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid var(--text-secondary);
+            background: var(--bg-color);
+            color: var(--text-color);
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Auth Screen -->
+        <div id="authContainer" class="auth-container card">
+            <h2 style="margin-top: 0; color: var(--accent);">Qarshi Hub</h2>
+            <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 20px;">Register to spin, win, and buy software & specs!</p>
+            <form onsubmit="handleSignup(event)">
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="signupName" placeholder="Abebe Kebede" required>
+                </div>
+                <div class="form-group">
+                    <label>Phone Number (Telebirr)</label>
+                    <input type="text" id="signupPhone" placeholder="09xxxxxxxx" required>
+                </div>
+                <button type="submit" class="action-btn" style="background: var(--primary);">Register & Start</button>
+            </form>
+        </div>
+
+        <!-- Dashboard -->
+        <div id="mainDashboard" class="hidden">
+            <header>
+                <div>
+                    <div class="balance-title">Hi, <span id="userNameDisplay">User</span></div>
+                    <div class="balance-amount"><span id="balance">50.00</span> ETB</div>
+                </div>
+                <div class="nav-buttons">
+                    <button class="btn-small" onclick="openModal('depositModal')">Deposit</button>
+                    <button class="btn-small" onclick="openModal('withdrawModal')">Withdraw</button>
+                    <button class="btn-small logout-btn" onclick="handleLogout()">Logout</button>
+                </div>
+            </header>
+
+            <div class="tabs">
+                <button class="tab-btn active" id="tabGameBtn" onclick="switchTab('game')">Spin Game</button>
+                <button class="tab-btn" id="tabStoreBtn" onclick="switchTab('store')">Digital Store</button>
+            </div>
+
+            <!-- Game Section -->
+            <div id="gameSection" class="card">
+                <h3>Spin & Win Birr</h3>
+                <p style="font-size: 12px; color: var(--text-secondary); margin-top: 0;">Cost per spin: 5 ETB</p>
+                <div class="wheel-container">
+                    <div class="pointer"></div>
+                    <div class="wheel" id="wheel">
+                        <div class="wheel-label">0 ETB</div>
+                        <div class="wheel-label">5 ETB</div>
+                        <div class="wheel-label">10 ETB</div>
+                        <div class="wheel-label">20 ETB</div>
+                        <div class="wheel-label">50 ETB</div>
+                        <div class="wheel-label">100 ETB</div>
+                    </div>
+                </div>
+                <button class="action-btn" id="spinBtn" onclick="spinWheel()">SPIN NOW (5 ETB)</button>
+                <div id="message" style="margin-top: 12px; font-size: 13px; font-weight: 500;"></div>
+            </div>
+
+            <!-- Store Section -->
+            <div id="storeSection" class="card hidden">
+                <h3>Engineering & Software Store</h3>
+                <div class="product-item">
+                    <div>
+                        <strong style="font-size: 13px;">Telegram Bot Boilerplate</strong>
+                        <div style="font-size: 11px; color: var(--text-secondary);">Node.js / Python source code</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 13px; font-weight: bold; color: var(--accent);">150 ETB</div>
+                        <button class="btn-small" style="margin-top: 4px;" onclick="buyProduct('Telegram Bot Boilerplate', 150)">Buy</button>
+                    </div>
+                </div>
+                <div class="product-item">
+                    <div>
+                        <strong style="font-size: 13px;">Structural Engineering Specs</strong>
+                        <div style="font-size: 11px; color: var(--text-secondary);">PDF Design Handbook</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 13px; font-weight: bold; color: var(--accent);">100 ETB</div>
+                        <button class="btn-small" style="margin-top: 4px;" onclick="buyProduct('Structural Engineering Specs', 100)">Buy</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Referral Card -->
+            <div class="card">
+                <h4 style="margin-top: 0; margin-bottom: 6px; color: var(--accent);">Invite & Earn 🎁</h4>
+                <div style="display: flex; gap: 6px; margin-top: 8px;">
+                    <input type="text" id="refLinkInput" readonly style="background: var(--bg-color); border: 1px solid var(--text-secondary); color: var(--text-color); padding: 8px; border-radius: 8px; font-size: 11px; flex: 1;">
+                    <button class="btn-small" onclick="copyRefLink()" style="background: var(--primary); border: none; color: #fff;">Copy</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Deposit Modal -->
+    <div class="modal" id="depositModal">
+        <div class="modal-content">
+            <h3>Deposit via Telebirr</h3>
+            <div style="font-size: 11px; color: var(--text-secondary); background: var(--bg-color); padding: 8px; border-radius: 6px; margin-bottom: 12px; text-align: left;">
+                Send money to <b>0963052077</b>, then paste your SMS receipt below:
+            </div>
+            <div class="form-group">
+                <textarea id="receiptText" rows="3" placeholder="Paste Telebirr SMS..."></textarea>
+                <button type="button" class="btn-small" style="width: 100%; margin-top: 4px;" onclick="parseReceipt()">Auto-Verify SMS</button>
+            </div>
+            <div class="form-group"><label>Amount</label><input type="number" id="depositAmount" readonly></div>
+            <div class="form-group"><label>Transaction ID</label><input type="text" id="depositTxId" readonly></div>
+            <div style="display: flex; gap: 8px;">
+                <button class="btn-small" style="flex: 1; background: transparent; color: var(--text-secondary);" onclick="closeModal('depositModal')">Cancel</button>
+                <button class="action-btn" style="flex: 1; padding: 8px; font-size: 13px;" onclick="handleDeposit()">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Withdraw Modal -->
+    <div class="modal" id="withdrawModal">
+        <div class="modal-content">
+            <h3>Withdraw Funds</h3>
+            <div class="form-group">
+                <label>Method</label>
+                <select id="withdrawMethod"><option value="telebirr">Telebirr</option><option value="sinqee">Sinqee Bank</option><option value="oromia">Oromia Cooperative Bank</option></select>
+            </div>
+            <div class="form-group"><label>Account / Phone</label><input type="text" id="withdrawAccount" placeholder="09xxxxxxxx"></div>
+            <div class="form-group"><label>Amount (ETB)</label><input type="number" id="withdrawAmount"></div>
+            <div style="display: flex; gap: 8px;">
+                <button class="btn-small" style="flex: 1; background: transparent; color: var(--text-secondary);" onclick="closeModal('withdrawModal')">Cancel</button>
+                <button class="action-btn" style="flex: 1; padding: 8px; font-size: 13px;" onclick="handleWithdraw()">Request</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let balance = 50.00;
+        let loggedInUser = "User";
+        let currentRotation = 0;
+        let isSpinning = false;
+        const rewards = [0, 5, 10, 20, 50, 100];
+        const usedTx = new Set();
+
+        function handleSignup(e) {
+            e.preventDefault();
+            loggedInUser = document.getElementById('signupName').value;
+            const phone = document.getElementById('signupPhone').value;
+            document.getElementById('userNameDisplay').innerText = loggedInUser;
+            document.getElementById('authContainer').classList.add('hidden');
+            document.getElementById('mainDashboard').classList.remove('hidden');
+            document.getElementById('refLinkInput').value = `https://t.me/Qarshigame_bot?start=ref_${btoa(phone).substring(0,6)}`;
+            updateUI();
+        }
+
+        function handleLogout() {
+            document.getElementById('mainDashboard').classList.add('hidden');
+            document.getElementById('authContainer').classList.remove('hidden');
+        }
+
+        function updateUI() { document.getElementById('balance').innerText = balance.toFixed(2); }
+        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+        function copyRefLink() { navigator.clipboard.writeText(document.getElementById('refLinkInput').value); alert('Copied!'); }
+
+        function switchTab(tab) {
+            document.getElementById('tabGameBtn').classList.toggle('active', tab === 'game');
+            document.getElementById('tabStoreBtn').classList.toggle('active', tab === 'store');
+            document.getElementById('gameSection').classList.toggle('hidden', tab !== 'game');
+            document.getElementById('storeSection').classList.toggle('hidden', tab !== 'store');
+        }
+
+        function parseReceipt() {
+            const text = document.getElementById('receiptText').value;
+            const amt = text.match(/ETB\s+([0-9]+\.[0-9]{2})/i);
+            const tx = text.match(/transaction number is\s+([A-Z0-9]+)/i) || text.match(/receipt\/([A-Z0-9]+)/i);
+            if (amt && tx) {
+                document.getElementById('depositAmount').value = amt[1];
+                document.getElementById('depositTxId').value = tx[1];
+                alert('Parsed successfully!');
+            } else { alert('Invalid SMS format.'); }
+        }
+
+        function spinWheel() {
+            if (isSpinning || balance < 5) return;
+            balance -= 5; updateUI(); isSpinning = true;
+            document.getElementById('spinBtn').disabled = true;
+
+            const rand = Math.random();
+            let idx = rand < 0.65 ? 0 : rand < 0.90 ? (Math.random()<0.7?1:2) : rand < 0.98 ? (Math.random()<0.6?3:4) : 5;
+            
+            currentRotation += 2160 + (360 - (currentRotation % 360)) + (360 - (idx * 60 + 30));
+            document.getElementById('wheel').style.transform = `rotate(${currentRotation}deg)`;
+
+            setTimeout(() => {
+                isSpinning = false; document.getElementById('spinBtn').disabled = false;
+                const won = rewards[idx];
+                balance += won; updateUI();
+                document.getElementById('message').innerText = won > 0 ? `Won ${won} ETB! 🎉` : 'No win, try again.';
+            }, 4000);
+        }
+
+        function handleDeposit() {
+            const amt = parseFloat(document.getElementById('depositAmount').value);
+            const tx = document.getElementById('depositTxId').value;
+            if (!amt || usedTx.has(tx)) { alert('Invalid or reused transaction.'); return; }
+            usedTx.add(tx); balance += amt; updateUI(); closeModal('depositModal');
+            alert(`Deposit of ${amt} ETB credited!`);
+        }
+
+        function handleWithdraw() {
+            const amt = parseFloat(document.getElementById('withdrawAmount').value);
+            if (!amt || amt > balance) { alert('Invalid amount.'); return; }
+            balance -= amt; updateUI(); closeModal('withdrawModal');
+            alert('Withdrawal request submitted!');
+        }
+
+        function buyProduct(name, price) {
+            if (balance < price) { alert('Insufficient balance! Please deposit.'); return; }
+            balance -= price; updateUI();
+            alert(`Successfully purchased "${name}"! Check your Telegram chat for the download link.`);
+        }
+    </script>
+</body>
+</html>
